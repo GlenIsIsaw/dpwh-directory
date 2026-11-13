@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+client/dist/
+
+# private data and secrets: NEVER commit these
+server/employees.db
+server/employees.db-wal
+server/employees.db-shm
+server/uploads/
+server/secret.key
+server/backup-temp-*.db
+employee-backup-*.zip
+employees-*.xlsx
+
+# misc
+.env
+*.log
+.DS_Store
+Thumbs.db
