@@ -647,7 +647,7 @@ body {
 @media (min-width: 768px) {
   .chief-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
     gap: 0.75rem;
     margin: 0 0 1.25rem;
     padding: 0;
@@ -659,7 +659,7 @@ body {
 
 /* desktop: all six in one row */
 @media (min-width: 1200px) {
-  .chief-row { grid-template-columns: repeat(6, 1fr); }
+  .chief-row { grid-template-columns: repeat(7, 1fr); }
 }
 
 /* ===== Pager (mobile first) ===== */

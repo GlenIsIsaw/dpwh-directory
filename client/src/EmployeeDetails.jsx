@@ -51,7 +51,10 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
               </div>
             )}
             <div>
-              <h4 className="mb-1 text-uppercase fw-bold">{fullName(employee)}</h4>
+                            <h4 className="mb-1 text-uppercase fw-bold">{fullName(employee)}</h4>
+              {employee.nickname && (
+                <div className="text-muted mb-1 text-uppercase fw-bold">“{employee.nickname}”</div>
+              )}
               <div className="text-muted mb-2">{employee.position || "No position"}</div>
               <span className={`status-badge ${employee.status === "Active" ? "is-active" : "is-inactive"}`}>
                 {employee.status}
@@ -62,7 +65,8 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
           <h6 className="detail-section">Employment</h6>
           <Row>
             <Col md={4}><Field label="ID Number" value={employee.idNumber} /></Col>
-            <Col md={4}><Field label="Hire Date" value={formatDate(employee.hireDate)} /></Col>
+                   <Col md={4}><Field label="Hire Date" value={formatDate(employee.hireDate)} /></Col>
+            <Col md={4}><Field label="Employment Type" value={employee.employmentType} /></Col>
           </Row>
           <Row>
             <Col md={6}><Field label="Department" value={employee.department} /></Col>

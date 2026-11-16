@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Modal, Form, Button, Row, Col, Alert } from "react-bootstrap";
-import { DEPARTMENTS, POSITIONS, UNIQUE_POSITIONS, SUFFIXES } from "./options";
+import { DEPARTMENTS, POSITIONS, UNIQUE_POSITIONS, SUFFIXES, EMPLOYMENT_TYPES } from "./options";
 
 const emptyForm = {
   idNumber: "",
@@ -17,6 +17,8 @@ const emptyForm = {
   birthday: "",
   emergencyName: "",
   emergencyContact: "",
+  nickname: "",
+  employmentType: "",
 };
 
 export default function EmployeeForm({ show, onHide, onSaved, employee }) {
@@ -60,6 +62,8 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
         birthday: employee.birthday || "",
         emergencyName: employee.emergencyName || "",
         emergencyContact: employee.emergencyContact || "",
+        nickname: employee.nickname || "",
+        employmentType: employee.employmentType || "",
       });
       setPreview(employee.photo ? `/uploads/${employee.photo}` : "");
     } else {
@@ -199,6 +203,29 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
                 )}
                 {SUFFIXES.map((s) => (
                   <option key={s} value={s}>{s}</option>
+                ))}
+              </Form.Select>
+            </Col>
+          </Row>
+
+                    <Row className="mb-3">
+            <Col md={4}>
+              <Form.Label>Nickname</Form.Label>
+              <Form.Control
+              className="text-uppercase"
+                name="nickname"
+                value={form.nickname}
+                onChange={handleChange}
+                placeholder="Optional"
+                maxLength={30}
+              />
+            </Col>
+            <Col md={4}>
+              <Form.Label>Employment Type</Form.Label>
+              <Form.Select name="employmentType" value={form.employmentType} onChange={handleChange}>
+                <option value="">Select a Type</option>
+                {EMPLOYMENT_TYPES.map((t) => (
+                  <option key={t} value={t}>{t}</option>
                 ))}
               </Form.Select>
             </Col>

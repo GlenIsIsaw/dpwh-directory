@@ -19,6 +19,7 @@ const CHIEF_POSITIONS = [
   "OIC - Chief, Maintenance Section",
   "OIC - Chief, Planning and Design Section",
   "OIC - Chief, Quality Assurance Section",
+  "OIC - Chief, Procurement/BAC",
 ];
 
 export const UNIQUE_POSITIONS = [
@@ -50,3 +51,5 @@ export const POSITIONS = [
 ];
 
 export const SUFFIXES = ["Jr.", "Sr.", "II", "III", "IV", "V"];
+
+export const EMPLOYMENT_TYPES = ["Regular/Budgetary", "Job Order", "Casual"];

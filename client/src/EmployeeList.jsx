@@ -88,7 +88,7 @@ export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, ca
   const hideLeaders = HIDE_LEADERS && !term;
   const hiddenLeaders = hideLeaders ? leaderIds.size : 0;
   const filtered = employees.filter((e) => {
-    const text = [e.idNumber, e.lastName, e.firstName, e.middleName, e.department, e.position]
+       const text = [e.idNumber, e.lastName, e.firstName, e.middleName, e.nickname, e.department, e.position, e.employmentType]
       .filter(Boolean)
       .join(" ")
       .toLowerCase();
