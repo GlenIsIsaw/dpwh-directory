@@ -1,4 +1,5 @@
 import { Modal, Button, Row, Col } from "react-bootstrap";
+import { useState } from "react";
 
 function fullName(e) {
   const mid = e.middleName ? ` ${e.middleName}` : "";
@@ -24,7 +25,9 @@ function Field({ label, value }) {
 }
 
 export default function EmployeeDetails({ show, employee, onHide, onEdit, onDelete }) {
+    const [zoom, setZoom] = useState(false);
   return (
+    <>
     <Modal show={show} onHide={onHide} size="lg" centered>
       <Modal.Header closeButton>
         <Modal.Title>Employee Details</Modal.Title>
@@ -34,14 +37,22 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
         <Modal.Body>
           <div className="d-flex align-items-center gap-3 mb-2">
             {employee.photo ? (
-              <img
-                src={`/uploads/${employee.photo}`}
-                alt={fullName(employee)}
-                width="110"
-                height="110"
-                className="rounded-circle"
-                style={{ objectFit: "cover" }}
-              />
+              <button
+                type="button"
+                className="photo-btn"
+                onClick={() => setZoom(true)}
+                aria-label="View photo full screen"
+                title="Click to view full screen"
+              >
+                <img
+                  src={`/uploads/${employee.photo}`}
+                  alt={fullName(employee)}
+                  width="110"
+                  height="110"
+                  className="rounded-circle"
+                  style={{ objectFit: "cover" }}
+                />
+              </button>
             ) : (
               <div
                 className="avatar-initials rounded-circle d-flex align-items-center justify-content-center"
@@ -104,5 +115,21 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
         </Button>
       </Modal.Footer>
     </Modal>
+
+    <Modal show={zoom} onHide={() => setZoom(false)} fullscreen className="photo-viewer">
+      <Modal.Header closeButton closeVariant="white">
+        <Modal.Title>{employee ? fullName(employee) : ""}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body onClick={() => setZoom(false)}>
+        {employee?.photo && (
+          <img
+            src={`/uploads/${employee.photo}`}
+            alt={employee ? fullName(employee) : ""}
+            className="photo-viewer-img"
+          />
+        )}
+      </Modal.Body>
+    </Modal>
+    </>
   );
 }
