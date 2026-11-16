@@ -272,6 +272,7 @@ const UNIQUE_POSITIONS = [
   "OIC - Chief, Maintenance Section",
   "OIC - Chief, Planning and Design Section",
   "OIC - Chief, Quality Assurance Section",
+  "OIC - Chief, Procurement/BAC",
 ];
 
 function positionTaken(position, status, exceptId) {
@@ -297,12 +298,11 @@ app.post("/api/employees",   requireAuth(["admin", "hr", "editor"]), upload.sing
     if (req.file) fs.unlink(req.file.path, () => {});
   };
 
-  
-
-  const {
+const {
     idNumber, lastName, firstName, middleName, suffix,
     department, position, contact, hireDate, status,
     address, birthday, emergencyName, emergencyContact,
+    nickname, employmentType,
   } = req.body;
 
   if (!lastName || !firstName) {
@@ -321,14 +321,16 @@ app.post("/api/employees",   requireAuth(["admin", "hr", "editor"]), upload.sing
         `INSERT INTO employees
          (idNumber, lastName, firstName, middleName, suffix,
           department, position, contact, hireDate, status, photo,
-          address, birthday, emergencyName, emergencyContact)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          address, birthday, emergencyName, emergencyContact,
+          nickname, employmentType)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
       .run(
         idNumber || null, lastName, firstName, middleName || null, suffix || null,
         department || null, position || null, contact || null, hireDate || null,
         status || "Active", req.file ? req.file.filename : null,
-        address || null, birthday || null, emergencyName || null, emergencyContact || null
+        address || null, birthday || null, emergencyName || null, emergencyContact || null,
+        nickname || null, employmentType || null
       );
 
           logActivity(
@@ -365,7 +367,7 @@ app.put("/api/employees/:id", requireAuth(["admin", "hr", "editor"]), upload.sin
   const {
     idNumber, lastName, firstName, middleName, suffix,
     department, position, contact, hireDate, status,
-    address, birthday, emergencyName, emergencyContact, 
+    address, birthday, emergencyName, emergencyContact, nickname, employmentType, 
   } = req.body;
 
   if (!lastName || !firstName) {
@@ -384,7 +386,8 @@ app.put("/api/employees/:id", requireAuth(["admin", "hr", "editor"]), upload.sin
          idNumber = ?, lastName = ?, firstName = ?, middleName = ?, suffix = ?,
          department = ?, position = ?, contact = ?, hireDate = ?, status = ?,
          photo = ?,
-         address = ?, birthday = ?, emergencyName = ?, emergencyContact = ?
+         address = ?, birthday = ?, emergencyName = ?, emergencyContact = ?,
+         nickname = ?, employmentType = ?
        WHERE id = ?`
     ).run(
       idNumber || null, lastName, firstName, middleName || null, suffix || null,
@@ -392,6 +395,7 @@ app.put("/api/employees/:id", requireAuth(["admin", "hr", "editor"]), upload.sin
       status || "Active",
       req.file ? req.file.filename : existing.photo,
       address || null, birthday || null, emergencyName || null, emergencyContact || null,
+      nickname || null, employmentType || null,
       req.params.id
     );
 
@@ -404,6 +408,7 @@ app.put("/api/employees/:id", requireAuth(["admin", "hr", "editor"]), upload.sin
       "idNumber", "lastName", "firstName", "middleName", "suffix",
       "department", "position", "contact", "hireDate", "status",
       "address", "birthday", "emergencyName", "emergencyContact",
+      "nickname", "employmentType",
     ].filter((f) => (existing[f] || "") !== (req.body[f] || ""));
     if (req.file) changed.push("photo");
     logActivity(
@@ -468,6 +473,8 @@ app.put("/api/employees/:id", requireAuth(["admin", "hr", "editor"]), upload.sin
       { header: "Contact", key: "contact", width: 20 },
       { header: "Hire Date", key: "hireDate", width: 14 },
       { header: "Status", key: "status", width: 12 },
+      { header: "Nickname", key: "nickname", width: 16 },
+      { header: "Employment Type", key: "employmentType", width: 20 },
     ];
     ws.getRow(1).font = { bold: true };
     ws.views = [{ state: "frozen", ySplit: 1 }];
@@ -487,6 +494,8 @@ app.put("/api/employees/:id", requireAuth(["admin", "hr", "editor"]), upload.sin
         contact: e.contact,
         hireDate: e.hireDate,
         status: e.status,
+        nickname: e.nickname,
+        employmentType: e.employmentType,
       });
       row.height = 75;
       row.alignment = { vertical: "middle" };
@@ -577,3 +586,5 @@ app.use((err, req, res, next) => {
 app.listen(3000, "0.0.0.0", () => {
   console.log("Server running at http://127.0.0.1:3000");
 });
+
+console.log(db.prepare("PRAGMA table_info(employees)").all().map(c => c.name));

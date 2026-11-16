@@ -26,7 +26,7 @@ db.exec(`
 `);
 
 const empCols = db.prepare("PRAGMA table_info(employees)").all().map((c) => c.name);
-["address", "birthday", "emergencyName", "emergencyContact"].forEach((col) => {
+["address", "birthday", "emergencyName", "emergencyContact", "nickname", "employmentType"].forEach((col) => {
   if (!empCols.includes(col)) db.exec(`ALTER TABLE employees ADD COLUMN ${col} TEXT`);
 });
 
@@ -67,5 +67,8 @@ db.exec(`
     createdAt TEXT DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+try { db.exec("ALTER TABLE employees ADD COLUMN nickname TEXT"); } catch {}
+try { db.exec("ALTER TABLE employees ADD COLUMN employmentType TEXT"); } catch {}
 
 module.exports = db;
