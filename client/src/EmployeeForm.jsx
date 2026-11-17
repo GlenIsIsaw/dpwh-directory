@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, Form, Button, Row, Col, Alert } from "react-bootstrap";
 import { DEPARTMENTS, POSITIONS, UNIQUE_POSITIONS, SUFFIXES, EMPLOYMENT_TYPES } from "./options";
+import { useEmployees, saveEmployee, compressImage } from "./employeesData";
 
 const emptyForm = {
   idNumber: "",
@@ -28,15 +29,7 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-    const [employees, setEmployees] = useState([]);
-
-  useEffect(() => {
-    if (!show) return;
-    fetch("/api/employees")
-      .then((res) => res.json())
-      .then(setEmployees)
-      .catch(() => {});
-  }, [show]);
+  const { employees } = useEmployees();
 
   const takenPositions = new Set(
     employees
@@ -65,7 +58,7 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
         nickname: employee.nickname || "",
         employmentType: employee.employmentType || "",
       });
-      setPreview(employee.photo ? `/uploads/${employee.photo}` : "");
+          setPreview(employee.photo || "");
     } else {
       setForm(emptyForm);
       setPreview("");
@@ -105,18 +98,10 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
     setSaving(true);
     setError("");
 
-    const data = new FormData();
-    Object.entries(form).forEach(([key, value]) => data.append(key, value));
-    if (photo) data.append("photo", photo);
-
-    try {
-            const url = employee ? `/api/employees/${employee.id}` : "/api/employees";
-      const res = await fetch(url, {
-        method: employee ? "PUT" : "POST",
-        body: data,
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Could not save employee");
+      try {
+      // undefined = keep the current photo; a new file is shrunk in the browser
+      const photoData = photo ? await compressImage(photo) : undefined;
+      saveEmployee({ id: employee ? employee.id : null, form, photo: photoData });
       reset();
       onSaved();
     } catch (err) {

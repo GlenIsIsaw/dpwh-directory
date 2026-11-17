@@ -23,6 +23,7 @@ export const auth = getAuth(app);
 // keeps a copy of the data in the browser so it works offline
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({
+    cacheSizeBytes: 200 * 1024 * 1024,
     tabManager: persistentMultipleTabManager(),
   }),
 });

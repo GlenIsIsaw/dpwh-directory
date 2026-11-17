@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Table, Alert, Spinner, Button, Form, Row, Col, Pagination } from "react-bootstrap";
 import { pickLeaders } from "./leaders";
+import { useEmployees } from "./employeesData";
 
 // set to false to show the leaders in the table again
 const HIDE_LEADERS = true;
@@ -15,7 +16,7 @@ function Avatar({ employee }) {
   if (employee.photo) {
     return (
       <img
-        src={`/uploads/${employee.photo}`}
+        src={employee.photo}
         alt={fullName(employee)}
         width="48"
         height="48"
@@ -44,9 +45,7 @@ function pageWindow(current, total) {
 }
 
 export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, canDelete, onUnauthorized, onView }) {
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { employees, loading, error } = useEmployees();
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -57,21 +56,6 @@ export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, ca
   useEffect(() => {
     setPage(1);
   }, [search, deptFilter, statusFilter, pageSize]);
-
-  useEffect(() => {
-    fetch("/api/employees")
-      .then((res) => {
-        if (res.status === 401) {
-          onUnauthorized();
-          throw new Error("Not logged in");
-        }
-        if (!res.ok) throw new Error("Bad response");
-        return res.json();
-      })
-      .then(setEmployees)
-      .catch(() => setError("Cannot reach server"))
-      .finally(() => setLoading(false));
-  }, [refreshKey]);
 
   if (loading) return <Spinner animation="border" />;
   if (error) return <Alert variant="danger">{error}</Alert>;
@@ -164,7 +148,8 @@ export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, ca
             <td><Avatar employee={e} /></td>
             <td>{e.idNumber}</td>
                                 <td className="fw-semibold text-uppercase">
-              {fullName(e)}
+                    {fullName(e)}
+              {e.pending && <span className="badge text-bg-warning ms-2">waiting to sync</span>}
               <div className="d-md-none small text-muted fw-normal">
                 {e.position || e.department}
               </div>

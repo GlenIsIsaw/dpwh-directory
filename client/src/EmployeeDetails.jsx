@@ -45,7 +45,7 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
                 title="Click to view full screen"
               >
                 <img
-                  src={`/uploads/${employee.photo}`}
+                  src={employee.photo}
                   alt={fullName(employee)}
                   width="110"
                   height="110"
@@ -123,7 +123,7 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
       <Modal.Body onClick={() => setZoom(false)}>
         {employee?.photo && (
           <img
-            src={`/uploads/${employee.photo}`}
+            src={employee.photo}
             alt={employee ? fullName(employee) : ""}
             className="photo-viewer-img"
           />

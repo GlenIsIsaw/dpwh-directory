@@ -3,6 +3,7 @@ import { Container, Row, Col, ProgressBar, Spinner, Alert, Badge } from "react-b
 import { EMPLOYMENT_TYPES } from "./options";
 import { LEADER_POSITIONS, pickLeaders } from "./leaders";
 import { DonutChart, ColumnChart } from "./Charts";
+import { useEmployees } from "./employeesData";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -62,23 +63,12 @@ function ageOf(birthday, now) {
 }
 
 export default function Dashboard({ canSeePersonal, onView }) {
-  const [employees, setEmployees] = useState(null);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch("/api/employees")
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then(setEmployees)
-      .catch(() => setError("Could not load the dashboard data"));
-  }, []);
+  const { employees, loading, error } = useEmployees();
 
   if (error) {
     return <Container className="page"><Alert variant="danger">{error}</Alert></Container>;
   }
-  if (!employees) {
+  if (loading) {
     return <Container className="page"><Spinner animation="border" /></Container>;
   }
 

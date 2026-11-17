@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEmployees } from "./employeesData";
 import { UNIQUE_POSITIONS } from "./options";
 import { pickLeaders } from "./leaders";
 
@@ -20,17 +20,10 @@ function sectionOf(position) {
   return position.replace(/^OIC\s*[-–]\s*Chief,?\s*/i, "");
 }
 
-export default function LeadershipCards({ refreshKey, onView }) {
-  const [employees, setEmployees] = useState(null);
+export default function LeadershipCards({ onView }) {
+  const { employees, loading, error } = useEmployees();
 
-  useEffect(() => {
-    fetch("/api/employees")
-      .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then(setEmployees)
-      .catch(() => setEmployees(null));
-  }, [refreshKey]);
-
-  if (!employees) return null;
+  if (loading || error) return null;
 
   const leaders = pickLeaders(employees);
   const holder = (position) => leaders.get(position);
@@ -64,7 +57,7 @@ export default function LeadershipCards({ refreshKey, onView }) {
             <div key={position} className="lead-card" {...openProps(person)}>
               {person.photo ? (
                 <div className="lead-photo">
-                  <img src={`/uploads/${person.photo}`} alt={fullName(person)} />
+                  <img src={person.photo} alt={fullName(person)} />
                 </div>
               ) : (
                 <div className="lead-photo is-empty">{initials(person)}</div>
@@ -101,7 +94,7 @@ export default function LeadershipCards({ refreshKey, onView }) {
                 <div key={position} className="chief-card" {...openProps(person)}>
                   <div className="chief-photo">
                     {person.photo ? (
-                      <img src={`/uploads/${person.photo}`} alt={fullName(person)} />
+                      <img src={person.photo} alt={fullName(person)} />
                     ) : (
                       initials(person)
                     )}

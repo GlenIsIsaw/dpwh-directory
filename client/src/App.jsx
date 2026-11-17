@@ -13,6 +13,7 @@ import LeadershipCards from "./LeadershipCards";
 import Dashboard from "./Dashboard";
 import NavLinks from "./Sidebar";
 import { useAuth, logout } from "./auth";
+import { EmployeesProvider, removeEmployee } from "./employeesData";
 
 export default function App() {
   const [showForm, setShowForm] = useState(false);
@@ -53,23 +54,9 @@ export default function App() {
 
   const handleDelete = (employee) => setDeleting(employee);
 
-  const confirmDelete = async () => {
-    setDeleteBusy(true);
-    try {
-      const res = await fetch(`/api/employees/${deleting.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      setDeleting(null);
-      setRefreshKey((k) => k + 1);
-    } catch {
-      setDeleting(null);
-      setNotice({
-        title: "Delete failed",
-        message: "Could not delete the employee.",
-        variant: "danger",
-      });
-    } finally {
-      setDeleteBusy(false);
-    }
+  const confirmDelete = () => {
+    removeEmployee(deleting.id);
+    setDeleting(null);
   };
 
     const [showUsers, setShowUsers] = useState(false);
@@ -89,6 +76,13 @@ export default function App() {
     setView("employees");
   }, [user?.id]);
 
+      useEffect(() => {
+    const show = (e) =>
+      setNotice({ title: "Not saved", message: e.detail, variant: "danger" });
+    window.addEventListener("data-error", show);
+    return () => window.removeEventListener("data-error", show);
+  }, []);
+
     if (user === undefined) {
     return <Container className="mt-4">Loading...</Container>;
   }
@@ -102,7 +96,7 @@ export default function App() {
   const isAdmin = user.role === "admin";
 
    return (
-    <>
+<EmployeesProvider>
       <header className="app-topbar">
         <Container className="d-flex align-items-center justify-content-between">
              <div className="brand d-flex align-items-center gap-2">
@@ -314,6 +308,6 @@ export default function App() {
         variant={notice?.variant}
         onClose={() => setNotice(null)}
       />
-    </>
+</EmployeesProvider>
   );
 }
