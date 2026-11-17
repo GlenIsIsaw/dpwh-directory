@@ -8,6 +8,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "./firebase";
+import { logActivity } from "./activity";
 
 const FIELDS = [
   "idNumber", "lastName", "firstName", "middleName", "suffix",
@@ -68,7 +69,7 @@ function clean(form) {
 }
 
 // photo: undefined = keep the current photo, null = no photo, string = new photo
-export function saveEmployee({ id, form, photo }) {
+export function saveEmployee({ id, form, photo, existing }) {
   const data = clean(form);
   if (!data.lastName || !data.firstName) {
     throw new Error("Last name and first name are required");
@@ -80,6 +81,17 @@ export function saveEmployee({ id, form, photo }) {
   if (id) {
     if (photo !== undefined) data.photo = photo;
     updateDoc(doc(db, "employees", id), data).catch(reportError);
+
+    const changed = existing
+      ? FIELDS.filter(
+          (f) => String(existing[f] ?? "").trim() !== String(form[f] ?? "").trim()
+        )
+      : [];
+    if (photo !== undefined) changed.push("photo");
+    logActivity(
+      "EMPLOYEE_EDITED",
+      `${data.lastName}, ${data.firstName} - changed: ${changed.join(", ") || "nothing"}`
+    );
     return id;
   }
 
@@ -88,11 +100,19 @@ export function saveEmployee({ id, form, photo }) {
   data.createdBy = uid;
   const ref = doc(collection(db, "employees"));
   setDoc(ref, data).catch(reportError);
+  logActivity(
+    "EMPLOYEE_ADDED",
+    `${data.lastName}, ${data.firstName}${data.idNumber ? ` (${data.idNumber})` : ""}`
+  );
   return ref.id;
 }
 
-export function removeEmployee(id) {
-  deleteDoc(doc(db, "employees", id)).catch(reportError);
+export function removeEmployee(employee) {
+  deleteDoc(doc(db, "employees", employee.id)).catch(reportError);
+  logActivity(
+    "EMPLOYEE_DELETED",
+    `${employee.lastName}, ${employee.firstName}${employee.idNumber ? ` (${employee.idNumber})` : ""}`
+  );
 }
 
 // ---- photos: shrink in the browser, keep as a small JPEG text string ----

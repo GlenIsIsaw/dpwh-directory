@@ -101,7 +101,7 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
       try {
       // undefined = keep the current photo; a new file is shrunk in the browser
       const photoData = photo ? await compressImage(photo) : undefined;
-      saveEmployee({ id: employee ? employee.id : null, form, photo: photoData });
+      saveEmployee({ id: employee ? employee.id : null, form, photo: photoData, existing: employee });
       reset();
       onSaved();
     } catch (err) {

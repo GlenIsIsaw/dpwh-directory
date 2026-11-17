@@ -20,6 +20,9 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 
+// second app instance: lets an admin create other people's logins without being signed out
+export const secondaryAuth = getAuth(initializeApp(firebaseConfig, "secondary"));
+
 // keeps a copy of the data in the browser so it works offline
 export const db = initializeFirestore(app, {
   localCache: persistentLocalCache({

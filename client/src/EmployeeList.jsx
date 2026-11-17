@@ -132,7 +132,7 @@ export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, ca
           <th>Name</th>
           <th>Department</th>
              <th className="d-none d-xl-table-cell">Position</th>
-          <th>Status</th>
+          <th className="d-none d-xl-table-cell">Status</th>
           {(canEdit || canDelete) && <th>Actions</th>}
         </tr>
       </thead>
@@ -156,7 +156,7 @@ export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, ca
             </td>
             <td>{e.department}</td>
             <td className="d-none d-xl-table-cell">{e.position}</td>
-            <td className="d-none d-sm-table-cell">
+            <td className="d-none d-xl-table-cell">
               <span className={`status-badge ${e.status === "Active" ? "is-active" : "is-inactive"}`}>
                 {e.status}
               </span>

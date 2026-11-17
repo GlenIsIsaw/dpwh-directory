@@ -55,7 +55,7 @@ export default function App() {
   const handleDelete = (employee) => setDeleting(employee);
 
   const confirmDelete = () => {
-    removeEmployee(deleting.id);
+    removeEmployee(deleting);
     setDeleting(null);
   };
 

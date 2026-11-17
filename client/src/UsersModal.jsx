@@ -1,54 +1,47 @@
 import { useEffect, useState } from "react";
-import { Modal, Table, Form, Button, Row, Col, Alert } from "react-bootstrap";
+import { Modal, Table, Form, Button, Row, Col, Alert, Badge } from "react-bootstrap";
+import { collection, doc, onSnapshot, orderBy, query, updateDoc } from "firebase/firestore";
+import { db } from "./firebase";
+import { createStaffUser } from "./auth";
+import { logActivity } from "./activity";
 import ConfirmModal from "./ConfirmModal";
 
 const ROLES = ["admin", "hr", "editor", "viewer"];
 const emptyForm = { fullName: "", username: "", password: "", role: "viewer" };
+const OFFLINE = "Managing users needs an internet connection";
 
 export default function UsersModal({ show, onHide, currentUser }) {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [form, setForm] = useState(emptyForm);
+  const [adding, setAdding] = useState(false);
 
   const [nameTarget, setNameTarget] = useState(null);
   const [nameValue, setNameValue] = useState("");
-  const [pwTarget, setPwTarget] = useState(null);
-  const [pwValue, setPwValue] = useState("");
-  const [pwAgain, setPwAgain] = useState("");
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [modalError, setModalError] = useState("");
+  const [toggleTarget, setToggleTarget] = useState(null);
+  const [resetTarget, setResetTarget] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const load = () =>
-    fetch("/api/users")
-      .then((res) => {
-        if (!res.ok) throw new Error();
-        return res.json();
-      })
-      .then(setUsers)
-      .catch(() => setError("Could not load users"));
-
   useEffect(() => {
-    if (show) {
-      setError("");
-      setMessage("");
-      load();
-    }
+    if (!show) return;
+    setError("");
+    setMessage("");
+    const q = query(collection(db, "users"), orderBy("username"));
+    return onSnapshot(
+      q,
+      (snap) => setUsers(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setError("Could not load users")
+    );
   }, [show]);
 
-  const call = async (url, method, body) => {
+  const update = async (id, changes) => {
     try {
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: body ? JSON.stringify(body) : undefined,
-      });
-      const data = await res.json();
-      if (!res.ok) return { ok: false, error: data.error || "Something went wrong" };
-      return { ok: true };
+      await updateDoc(doc(db, "users", id), changes);
+      return "";
     } catch {
-      return { ok: false, error: "Cannot reach server" };
+      return "Could not save. Check your connection and permissions.";
     }
   };
 
@@ -56,19 +49,26 @@ export default function UsersModal({ show, onHide, currentUser }) {
     e.preventDefault();
     setError("");
     setMessage("");
-    const r = await call("/api/users", "POST", form);
-    if (!r.ok) return setError(r.error);
-    setMessage(`User "${form.username}" created.`);
-    setForm(emptyForm);
-    load();
+    if (!navigator.onLine) return setError("Creating accounts needs an internet connection");
+    setAdding(true);
+    try {
+      await createStaffUser(form);
+      setMessage(`User "${form.username.trim().toLowerCase()}" created.`);
+      setForm(emptyForm);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setAdding(false);
+    }
   };
 
   const changeRole = async (u, role) => {
     setError("");
     setMessage("");
-    const r = await call(`/api/users/${u.id}`, "PUT", { role });
-    if (!r.ok) setError(r.error);
-    load();
+    if (!navigator.onLine) return setError(OFFLINE);
+    const failed = await update(u.id, { role });
+    if (failed) setError(failed);
+    else logActivity("USER_ROLE_CHANGED", `${u.username} -> ${role}`);
   };
 
   const openName = (u) => {
@@ -79,44 +79,31 @@ export default function UsersModal({ show, onHide, currentUser }) {
 
   const saveName = async (e) => {
     e.preventDefault();
+    if (nameValue.trim().length < 2) return setModalError("Full name must be at least 2 characters");
+    if (!navigator.onLine) return setModalError(OFFLINE);
     setBusy(true);
-    setModalError("");
-    const r = await call(`/api/users/${nameTarget.id}`, "PUT", { fullName: nameValue });
+    const failed = await update(nameTarget.id, { fullName: nameValue.trim() });
     setBusy(false);
-    if (!r.ok) return setModalError(r.error);
+    if (failed) return setModalError(failed);
+    logActivity("USER_NAME_CHANGED", `${nameTarget.username} -> ${nameValue.trim()}`);
     setNameTarget(null);
     setMessage("Name updated.");
-    load();
   };
 
-  const openPassword = (u) => {
-    setPwTarget(u);
-    setPwValue("");
-    setPwAgain("");
-    setModalError("");
-  };
-
-  const savePassword = async (e) => {
-    e.preventDefault();
-    if (pwValue !== pwAgain) return setModalError("Passwords do not match");
+  const confirmToggle = async () => {
+    if (!navigator.onLine) {
+      setToggleTarget(null);
+      return setError(OFFLINE);
+    }
     setBusy(true);
-    setModalError("");
-    const r = await call(`/api/users/${pwTarget.id}`, "PUT", { password: pwValue });
+    const failed = await update(toggleTarget.id, { active: !toggleTarget.active });
     setBusy(false);
-    if (!r.ok) return setModalError(r.error);
-    setMessage(`Password changed for ${pwTarget.username}.`);
-    setPwTarget(null);
-  };
-
-  const confirmDelete = async () => {
-    setBusy(true);
-    const r = await call(`/api/users/${deleteTarget.id}`, "DELETE");
-    setBusy(false);
-    const name = deleteTarget.username;
-    setDeleteTarget(null);
-    if (!r.ok) return setError(r.error);
-    setMessage(`User "${name}" deleted.`);
-    load();
+    const name = toggleTarget.username;
+    const nowActive = !toggleTarget.active;
+    setToggleTarget(null);
+    if (failed) return setError(failed);
+    logActivity(nowActive ? "USER_ENABLED" : "USER_DISABLED", name);
+    setMessage(`Account "${name}" ${nowActive ? "enabled" : "disabled"}.`);
   };
 
   return (
@@ -136,6 +123,7 @@ export default function UsersModal({ show, onHide, currentUser }) {
                 <th>Name</th>
                 <th>Username</th>
                 <th>Role</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -161,15 +149,27 @@ export default function UsersModal({ show, onHide, currentUser }) {
                         ))}
                       </Form.Select>
                     </td>
+                    <td>
+                      {u.active ? (
+                        <Badge bg="success">Active</Badge>
+                      ) : (
+                        <Badge bg="secondary">Disabled</Badge>
+                      )}
+                    </td>
                     <td className="text-nowrap">
                       <Button size="sm" variant="outline-primary" className="me-2" onClick={() => openName(u)}>
                         Edit name
                       </Button>
-                      <Button size="sm" variant="outline-secondary" className="me-2" onClick={() => openPassword(u)}>
+                      <Button size="sm" variant="outline-secondary" className="me-2" onClick={() => setResetTarget(u)}>
                         Reset password
                       </Button>
-                      <Button size="sm" variant="outline-danger" disabled={isMe} onClick={() => setDeleteTarget(u)}>
-                        Delete
+                      <Button
+                        size="sm"
+                        variant={u.active ? "outline-danger" : "outline-success"}
+                        disabled={isMe}
+                        onClick={() => setToggleTarget(u)}
+                      >
+                        {u.active ? "Disable" : "Enable"}
                       </Button>
                     </td>
                   </tr>
@@ -193,6 +193,7 @@ export default function UsersModal({ show, onHide, currentUser }) {
               <Col md={3}>
                 <Form.Control
                   placeholder="Username"
+                  autoCapitalize="none"
                   value={form.username}
                   onChange={(e) => setForm({ ...form, username: e.target.value })}
                   required
@@ -216,7 +217,9 @@ export default function UsersModal({ show, onHide, currentUser }) {
               </Col>
             </Row>
             <div className="text-end mt-2">
-              <Button type="submit">Add user</Button>
+              <Button type="submit" disabled={adding}>
+                {adding ? "Creating..." : "Add user"}
+              </Button>
             </div>
           </Form>
         </Modal.Body>
@@ -245,50 +248,49 @@ export default function UsersModal({ show, onHide, currentUser }) {
         </Form>
       </Modal>
 
-      <Modal show={!!pwTarget} onHide={() => setPwTarget(null)} centered backdrop="static">
-        <Form onSubmit={savePassword}>
-          <Modal.Header closeButton>
-            <Modal.Title>Reset password</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {modalError && <Alert variant="danger">{modalError}</Alert>}
-            <p className="mb-3">
-              New password for <strong>{pwTarget?.fullName || pwTarget?.username}</strong>
-            </p>
-            <Form.Group className="mb-3">
-              <Form.Label>New password (at least 8 characters)</Form.Label>
-              <Form.Control type="password" value={pwValue} onChange={(e) => setPwValue(e.target.value)} required autoFocus />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Repeat new password</Form.Label>
-              <Form.Control type="password" value={pwAgain} onChange={(e) => setPwAgain(e.target.value)} required />
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setPwTarget(null)} disabled={busy}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={busy}>
-              {busy ? "Saving..." : "Reset password"}
-            </Button>
-          </Modal.Footer>
-        </Form>
+      <Modal show={!!resetTarget} onHide={() => setResetTarget(null)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Reset password</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>
+            Passwords of other people can't be changed from the browser. On the
+            administrator's computer, open a terminal in the <code>admin-tools</code>{" "}
+            folder and run:
+          </p>
+          <pre className="bg-light border rounded p-2 small">
+            node reset-password.js {resetTarget?.username} NEW-PASSWORD
+          </pre>
+          <p className="mb-0 text-muted small">
+            Use at least 8 characters, then tell {resetTarget?.fullName || resetTarget?.username} the new password.
+          </p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button onClick={() => setResetTarget(null)}>Close</Button>
+        </Modal.Footer>
       </Modal>
 
       <ConfirmModal
-        show={!!deleteTarget}
-        title="Delete user"
-        confirmText="Delete"
-        confirmVariant="danger"
+        show={!!toggleTarget}
+        title={toggleTarget?.active ? "Disable account" : "Enable account"}
+        confirmText={toggleTarget?.active ? "Disable" : "Enable"}
+        confirmVariant={toggleTarget?.active ? "danger" : "success"}
         busy={busy}
-        onCancel={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
+        onCancel={() => setToggleTarget(null)}
+        onConfirm={confirmToggle}
       >
-        {deleteTarget && (
-          <>
-            Delete the account of <strong>{deleteTarget.fullName || deleteTarget.username}</strong> (
-            {deleteTarget.username})? They will lose access immediately. This cannot be undone.
-          </>
+        {toggleTarget && (
+          toggleTarget.active ? (
+            <>
+              <strong>{toggleTarget.fullName || toggleTarget.username}</strong> will lose access
+              right away and can't sign in until the account is enabled again.
+            </>
+          ) : (
+            <>
+              <strong>{toggleTarget.fullName || toggleTarget.username}</strong> will be able to
+              sign in again.
+            </>
+          )
         )}
       </ConfirmModal>
     </>
