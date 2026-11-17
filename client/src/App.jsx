@@ -126,7 +126,7 @@ export default function App() {
               <span className="user-avatar">
                 {(user.fullName || user.username).charAt(0).toUpperCase()}
               </span>
-                 <span className="user-name" title={user.fullName || user.username}>
+                 <span className="user-name fw-bold text-uppercase" title={user.fullName || user.username}>
                 {user.fullName || user.username}
               </span>
               <span className={`role-badge role-${user.role}`}>{user.role}</span>
