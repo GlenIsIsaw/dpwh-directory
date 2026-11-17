@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Container, Button, Dropdown } from "react-bootstrap";
+import { Container, Button, Dropdown, Offcanvas } from "react-bootstrap";
 import EmployeeList from "./EmployeeList";
 import EmployeeForm from "./EmployeeForm";
 import Login from "./Login";
@@ -10,6 +10,8 @@ import ConfirmModal from "./ConfirmModal";
 import NoticeModal from "./NoticeModal";
 import EmployeeDetails from "./EmployeeDetails";
 import LeadershipCards from "./LeadershipCards";
+import Dashboard from "./Dashboard";
+import NavLinks from "./Sidebar";
 
 export default function App() {
   const [showForm, setShowForm] = useState(false);
@@ -88,6 +90,13 @@ export default function App() {
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [notice, setNotice] = useState(null);
     const [viewing, setViewing] = useState(null);
+      const [view, setView] = useState("employees");
+  const [showMenu, setShowMenu] = useState(false);
+
+  // after every login the main page is always the Employees list
+  useEffect(() => {
+    setView("employees");
+  }, [user?.id]);
 
     if (user === undefined) {
     return <Container className="mt-4">Loading...</Container>;
@@ -105,7 +114,18 @@ export default function App() {
     <>
       <header className="app-topbar">
         <Container className="d-flex align-items-center justify-content-between">
-          <div className="brand d-flex align-items-center gap-2">
+             <div className="brand d-flex align-items-center gap-2">
+            <Button
+              variant="outline-light"
+              size="sm"
+              className="d-lg-none nav-toggle"
+              onClick={() => setShowMenu(true)}
+              aria-label="Open menu"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </Button>
                         <img src="/logo.png" alt="Logo" className="brand-logo" />
             <span className="brand-title">DPWH Employee Management System</span>
           </div>
@@ -131,6 +151,15 @@ export default function App() {
         </Container>
       </header>
 
+      <div className="app-shell">
+        <aside className="sidebar">
+          <NavLinks view={view} onSelect={setView} />
+        </aside>
+
+        <main className="app-main">
+          {view === "dashboard" ? (
+            <Dashboard canSeePersonal={canExport} onView={setViewing} />
+          ) : (
       <Container className="page">
         <div className="page-head">
           <div>
@@ -186,6 +215,9 @@ export default function App() {
           />
         </div>
       </Container>
+          )}
+        </main>
+      </div>
 
       <EmployeeForm
         show={showForm}
@@ -231,6 +263,29 @@ export default function App() {
             : null
         }
       />
+            <Offcanvas
+        show={showMenu}
+        onHide={() => setShowMenu(false)}
+        placement="start"
+        className="nav-offcanvas"
+      >
+        <Offcanvas.Header closeButton closeVariant="white">
+          <Offcanvas.Title className="d-flex align-items-center gap-2">
+            <img src="/logo.png" alt="" className="brand-logo" />
+            Menu
+          </Offcanvas.Title>
+        </Offcanvas.Header>
+        <Offcanvas.Body>
+          <NavLinks
+            view={view}
+            onSelect={(v) => {
+              setView(v);
+              setShowMenu(false);
+            }}
+          />
+        </Offcanvas.Body>
+      </Offcanvas>
+      
             <ConfirmModal
         show={showLogout}
         title="Log out"
