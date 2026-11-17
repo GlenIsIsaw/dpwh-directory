@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
+import { login } from "./auth";
 
-export default function Login({ onLoggedIn }) {
+export default function Login({ message }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,16 +13,10 @@ export default function Login({ onLoggedIn }) {
     setBusy(true);
     setError("");
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Login failed");
-      onLoggedIn(data);
+      await login(username, password);
     } catch (err) {
       setError(err.message);
+    } finally {
       setBusy(false);
     }
   };
@@ -33,9 +28,9 @@ export default function Login({ onLoggedIn }) {
         <h1 className="login-title">DPWH Employee Management System</h1>
         <p className="login-sub">Sign in to continue</p>
 
-        {error && (
+        {(error || message) && (
           <Alert variant="danger" className="py-2">
-            {error}
+            {error || message}
           </Alert>
         )}
 

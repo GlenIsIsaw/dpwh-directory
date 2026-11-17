@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Modal, Form, Button, Alert } from "react-bootstrap";
+import { changeMyPassword } from "./auth";
 
 export default function ChangePasswordModal({ show, onHide }) {
   const [current, setCurrent] = useState("");
@@ -25,15 +26,13 @@ export default function ChangePasswordModal({ show, onHide }) {
       setError("New passwords do not match");
       return;
     }
+    if (next.length < 8) {
+      setError("New password must be at least 8 characters");
+      return;
+    }
     setBusy(true);
     try {
-      const res = await fetch("/api/me/password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword: current, newPassword: next }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Could not change password");
+      await changeMyPassword(current, next);
       setDone(true);
     } catch (err) {
       setError(err.message);

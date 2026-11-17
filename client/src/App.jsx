@@ -12,25 +12,16 @@ import EmployeeDetails from "./EmployeeDetails";
 import LeadershipCards from "./LeadershipCards";
 import Dashboard from "./Dashboard";
 import NavLinks from "./Sidebar";
+import { useAuth, logout } from "./auth";
 
 export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-    const [user, setUser] = useState(undefined); // undefined = checking, null = logged out
+  const [user, authMessage] = useAuth(); // undefined = checking, null = logged out
 
-  useEffect(() => {
-    fetch("/api/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
-
-  const handleLogout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    setUser(null);
-  };
+  const handleLogout = () => logout();
 
     const handleExport = async () => {
     setExporting(true);
@@ -102,7 +93,7 @@ export default function App() {
     return <Container className="mt-4">Loading...</Container>;
   }
   if (user === null) {
-    return <Login onLoggedIn={setUser} />;
+    return <Login message={authMessage} />;
   }
 
   const canEdit = ["admin", "hr", "editor"].includes(user.role);
@@ -210,7 +201,7 @@ export default function App() {
             onDelete={handleDelete}
             canEdit={canEdit}
             canDelete={canDelete}
-            onUnauthorized={() => setUser(null)}
+            onUnauthorized={() => {}}
             onView={setViewing}
           />
         </div>
@@ -285,7 +276,7 @@ export default function App() {
           />
         </Offcanvas.Body>
       </Offcanvas>
-      
+
             <ConfirmModal
         show={showLogout}
         title="Log out"
