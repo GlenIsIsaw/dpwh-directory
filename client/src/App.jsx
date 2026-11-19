@@ -15,6 +15,7 @@ import NavLinks from "./Sidebar";
 import { useAuth, logout } from "./auth";
 import { EmployeesProvider, removeEmployee } from "./employeesData";
 import DataTools from "./DataTools";
+import SyncChip from "./SyncChip";
 
 const GUEST = { id: null, username: "", fullName: "", role: "viewer", guest: true };
 
@@ -125,6 +126,8 @@ export default function App() {
             <span className="brand-title">DPWH Employee Management System</span>
           </div>
 
+                    <div className="d-flex align-items-center gap-2 flex-shrink-0">
+          <SyncChip />
           {user.guest ? (
             <Button variant="light" size="sm" onClick={() => setShowLogin(true)}>
               Log in
@@ -149,6 +152,7 @@ export default function App() {
             </Dropdown.Menu>
           </Dropdown>
           )}
+          </div>
         </Container>
       </header>
 
