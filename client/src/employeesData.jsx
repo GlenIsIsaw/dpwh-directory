@@ -37,7 +37,10 @@ export function EmployeesProvider({ children }) {
           );
         setState({ employees, loading: false, error: "" });
       },
-      () => setState({ employees: [], loading: false, error: "Could not load employees" })
+      (err) => {
+        console.error("Employees listener error:", err.code, err.message);
+        setState({ employees: [], loading: false, error: `Could not load employees (${err.code})` });
+      }
     );
   }, []);
 

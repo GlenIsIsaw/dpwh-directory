@@ -19,3 +19,4 @@ employees-*.xlsx
 *.log
 .DS_Store
 Thumbs.db
+dpwh-backup-*.json

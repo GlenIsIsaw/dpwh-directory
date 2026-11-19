@@ -14,13 +14,23 @@ import Dashboard from "./Dashboard";
 import NavLinks from "./Sidebar";
 import { useAuth, logout } from "./auth";
 import { EmployeesProvider, removeEmployee } from "./employeesData";
+import DataTools from "./DataTools";
+
+const GUEST = { id: null, username: "", fullName: "", role: "viewer", guest: true };
 
 export default function App() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const [user, authMessage] = useAuth(); // undefined = checking, null = logged out
+  const [authUser, authMessage] = useAuth(); // undefined = checking, null = not logged in
+  // anyone who is not logged in is a read-only guest viewer
+  const user = authUser === undefined ? undefined : authUser || GUEST;
+  const [showLogin, setShowLogin] = useState(false);
+
+  useEffect(() => {
+    if (authUser) setShowLogin(false);
+  }, [authUser]);
 
   const handleLogout = () => logout();
 
@@ -86,8 +96,8 @@ export default function App() {
     if (user === undefined) {
     return <Container className="mt-4">Loading...</Container>;
   }
-  if (user === null) {
-    return <Login message={authMessage} />;
+  if (showLogin && !authUser) {
+    return <Login message={authMessage} onBack={() => setShowLogin(false)} />;
   }
 
   const canEdit = ["admin", "hr", "editor"].includes(user.role);
@@ -115,6 +125,11 @@ export default function App() {
             <span className="brand-title">DPWH Employee Management System</span>
           </div>
 
+          {user.guest ? (
+            <Button variant="light" size="sm" onClick={() => setShowLogin(true)}>
+              Log in
+            </Button>
+          ) : (
           <Dropdown align="end">
             <Dropdown.Toggle variant="light" size="sm" className="user-chip">
               <span className="user-avatar">
@@ -133,6 +148,7 @@ export default function App() {
               <Dropdown.Item onClick={() => setShowLogout(true)}>Log out</Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown>
+          )}
         </Container>
       </header>
 
@@ -163,16 +179,7 @@ export default function App() {
                 + Add Employee
               </Button>
             )}
-            {canExport && (
-              <>
-                <Button variant="outline-success" onClick={handleExport} disabled={exporting}>
-                  {exporting ? "Exporting..." : "Export Excel"}
-                </Button>
-                <Button variant="outline-dark" href="/api/backup">
-                  Backup
-                </Button>
-              </>
-            )}
+            {canExport && <DataTools role={user.role} onNotice={setNotice} />}
             {isAdmin && (
               <>
                 <Button variant="outline-primary" onClick={() => setShowUsers(true)}>
@@ -281,7 +288,8 @@ export default function App() {
           await handleLogout();
         }}
       >
-        Do you want to log out of the system?
+        Do you want to log out of the system? You will need an internet connection to
+        log in again.
       </ConfirmModal>
 
       <ConfirmModal

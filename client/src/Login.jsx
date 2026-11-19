@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Form, Button, Alert } from "react-bootstrap";
 import { login } from "./auth";
 
-export default function Login({ message }) {
+export default function Login({ message, onBack }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -58,7 +58,13 @@ export default function Login({ message }) {
           </Button>
         </Form>
 
-        <div className="login-foot">Authorized personnel only <br /> CN Sub - DEO</div>
+               {onBack && (
+          <Button variant="link" className="w-100 mt-2" onClick={onBack}>
+        Back to the directory
+          </Button>
+        )}
+
+        <div className="login-foot">CN Sub-DEO</div>
       </div>
     </div>
   );
