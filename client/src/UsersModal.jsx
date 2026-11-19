@@ -132,7 +132,7 @@ export default function UsersModal({ show, onHide, currentUser }) {
                 const isMe = u.id === currentUser.id;
                 return (
                   <tr key={u.id}>
-                    <td className="fw-semibold">
+                    <td className="fw-semibold text-capitalize">
                       {u.fullName || <span className="text-muted fw-normal">(no name yet)</span>}{" "}
                       {isMe && <span className="text-muted fw-normal">(you)</span>}
                     </td>

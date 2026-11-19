@@ -48,6 +48,9 @@ export const POSITIONS = [
   "Project Development Officer IV",
   "Project Development Officer V",
   "Engineering Assistant",
+  "Construction and Maintenance Capataz",
+  "Construction and Maintenance Man",
+  "Heavy Equipment Operator",
   ...UNIQUE_POSITIONS,
 ];
 
