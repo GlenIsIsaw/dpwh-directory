@@ -184,6 +184,7 @@ export default function UsersModal({ show, onHide, currentUser }) {
             <Row className="g-2">
               <Col md={4}>
                 <Form.Control
+                className="text-capitalize"
                   placeholder="Full name"
                   value={form.fullName}
                   onChange={(e) => setForm({ ...form, fullName: e.target.value })}
