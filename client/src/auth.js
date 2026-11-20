@@ -54,6 +54,9 @@ export async function changeMyPassword(currentPassword, newPassword) {
     if (err.code === "auth/network-request-failed") {
       throw new Error("Changing a password needs an internet connection");
     }
+    if (err.code === "auth/password-does-not-meet-requirements") {
+      throw new Error("Password needs 8+ characters with upper case, lower case and a number");
+    }
     throw new Error("Could not change password");
   }
 }
@@ -140,6 +143,9 @@ export async function createStaffUser({ username, fullName, password, role }) {
     if (err.code === "auth/weak-password") throw new Error("That password is too weak");
     if (err.code === "auth/network-request-failed") {
       throw new Error("Creating accounts needs an internet connection");
+    }
+       if (err.code === "auth/password-does-not-meet-requirements") {
+      throw new Error("Password needs 8+ characters with upper case, lower case and a number");
     }
     throw new Error("Could not create the account");
   }

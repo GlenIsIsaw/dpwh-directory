@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { Modal, Form, Button, Row, Col, Alert } from "react-bootstrap";
-import { DEPARTMENTS, POSITIONS, UNIQUE_POSITIONS, SUFFIXES, EMPLOYMENT_TYPES } from "./options";
+import { DEPARTMENTS, POSITIONS, UNIQUE_POSITIONS, SUFFIXES, EMPLOYMENT_TYPES, GENDERS } from "./options";
+import {
+  cleanName, cleanNickname, cleanId, cleanAddress, cleanPhone, PHONE_RE,
+} from "./validators";
 import { useEmployees, saveEmployee, compressImage } from "./employeesData";
 
 const emptyForm = {
@@ -20,6 +23,7 @@ const emptyForm = {
   emergencyContact: "",
   nickname: "",
   employmentType: "",
+  gender: "",
 };
 
 export default function EmployeeForm({ show, onHide, onSaved, employee }) {
@@ -57,6 +61,7 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
         emergencyContact: employee.emergencyContact || "",
         nickname: employee.nickname || "",
         employmentType: employee.employmentType || "",
+        gender: employee.gender || "",
       });
           setPreview(employee.photo || "");
     } else {
@@ -68,9 +73,22 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
   }, [show, employee]);
 
   const UPPER_FIELDS = ["lastName", "firstName", "middleName"];
+  const CLEANERS = {
+    idNumber: cleanId,
+    lastName: cleanName,
+    firstName: cleanName,
+    middleName: cleanName,
+    emergencyName: cleanName,
+    nickname: cleanNickname,
+    address: cleanAddress,
+    contact: cleanPhone,
+    emergencyContact: cleanPhone,
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: UPPER_FIELDS.includes(name) ? value.toUpperCase() : value });
+    const clean = CLEANERS[name];
+    setForm({ ...form, [name]: clean ? clean(value) : value });
   };
 
   const handlePhoto = (e) => {
@@ -95,6 +113,15 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+        if (!form.lastName.trim() || !form.firstName.trim()) {
+      return setError("Last name and first name are required");
+    }
+    if (form.contact && !PHONE_RE.test(form.contact)) {
+      return setError("Contact number must be 11 digits starting with 09");
+    }
+    if (form.emergencyContact && !PHONE_RE.test(form.emergencyContact)) {
+      return setError("Emergency contact number must be 11 digits starting with 09");
+    }
     setSaving(true);
     setError("");
 
@@ -216,6 +243,16 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
             </Col>
           </Row>
 
+                      <Col md={4}>
+              <Form.Label>Gender *</Form.Label>
+              <Form.Select name="gender" value={form.gender} onChange={handleChange} required>
+                <option value="">Select</option>
+                {GENDERS.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </Form.Select>
+            </Col>
+
           <Row className="mb-3">
             <Col md={4}>
               <Form.Label>Department</Form.Label>
@@ -250,8 +287,17 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
               </Form.Select>
             </Col>
             <Col md={4}>
-              <Form.Label>Contact</Form.Label>
-              <Form.Control name="contact" value={form.contact} onChange={handleChange} />
+              <Form.Label>Contact Number</Form.Label>
+              <Form.Control
+                name="contact"
+                value={form.contact}
+                onChange={handleChange}
+                inputMode="numeric"
+                maxLength={11}
+                pattern="09[0-9]{9}"
+                title="11 digits starting with 09"
+                placeholder="09XXXXXXXXX"
+              />
             </Col>
           </Row>
                     <Row className="mb-3">
@@ -278,7 +324,16 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
             </Col>
             <Col md={4}>
               <Form.Label>Emergency Contact Number</Form.Label>
-              <Form.Control name="emergencyContact" value={form.emergencyContact} onChange={handleChange} />
+              <Form.Control
+                name="emergencyContact"
+                value={form.emergencyContact}
+                onChange={handleChange}
+                inputMode="numeric"
+                maxLength={11}
+                pattern="09[0-9]{9}"
+                title="11 digits starting with 09"
+                placeholder="09XXXXXXXXX"
+              />
             </Col>
           </Row>
         </Modal.Body>

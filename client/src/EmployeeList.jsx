@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Table, Alert, Spinner, Button, Form, Row, Col, Pagination } from "react-bootstrap";
 import { pickLeaders } from "./leaders";
 import { useEmployees } from "./employeesData";
+import { cleanSearch } from "./validators";
 
 // set to false to show the leaders in the table again
 const HIDE_LEADERS = true;
@@ -100,7 +101,7 @@ export default function EmployeeList({ refreshKey, onEdit, onDelete, canEdit, ca
             className="text-capitalize"
             placeholder="Search name, ID number, department, position..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+onChange={(e) => setSearch(cleanSearch(e.target.value))}
           />
         </Col>
         <Col md={3}>

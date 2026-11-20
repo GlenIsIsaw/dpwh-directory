@@ -14,7 +14,7 @@ const FIELDS = [
   "idNumber", "lastName", "firstName", "middleName", "suffix",
   "department", "position", "contact", "hireDate", "status",
   "address", "birthday", "emergencyName", "emergencyContact",
-  "nickname", "employmentType",
+  "nickname", "employmentType", "gender",
 ];
 
 // ---- one shared live list for the whole app ----

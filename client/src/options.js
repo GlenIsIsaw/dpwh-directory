@@ -57,3 +57,5 @@ export const POSITIONS = [
 export const SUFFIXES = ["Jr.", "Sr.", "II", "III", "IV", "V"];
 
 export const EMPLOYMENT_TYPES = ["Regular/Budgetary", "Job Order", "Casual"];
+
+export const GENDERS = ["Female", "Male"];

@@ -88,6 +88,7 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
           <Row>
             <Col md={4}><Field label="Birthday" value={formatDate(employee.birthday)} /></Col>
             <Col md={4}><Field label="Contact Number" value={employee.contact} /></Col>
+            <Col md={4}><Field label="Gender" value={employee.gender} /></Col>
           </Row>
           <Col className="text-capitalize"><Field label="Address" value={employee.address} /></Col>
 

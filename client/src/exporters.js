@@ -29,6 +29,7 @@ const COLUMNS = [
   { header: "Middle Name", key: "middleName", width: 20 },
   { header: "Suffix", key: "suffix", width: 10 },
   { header: "Nickname", key: "nickname", width: 16 },
+  { header: "Gender", key: "gender", width: 10 },
   { header: "Department", key: "department", width: 38 },
   { header: "Position", key: "position", width: 38 },
   { header: "Employment Type", key: "employmentType", width: 20 },
@@ -124,6 +125,15 @@ export function downloadJson(data, filename) {
   downloadBlob(blob, filename);
 }
 
+function imageSize(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+
 export async function exportExcel(employees, filename) {
   // loaded only when needed, so the rest of the app stays small
   const ExcelJS = (await import("exceljs")).default;
@@ -162,6 +172,8 @@ export async function exportExcel(employees, filename) {
     cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
     cell.border = { bottom: { style: "medium", color: { argb: GOLD } } };
   });
+
+    const sizes = await Promise.all(employees.map((e) => (e.photo ? imageSize(e.photo) : null)));
 
   employees.forEach((e, i) => {
     const row = ws.getRow(HEADER + 1 + i);
@@ -206,9 +218,13 @@ export async function exportExcel(employees, filename) {
     if (e.photo && e.photo.startsWith("data:image/")) {
       const extension = e.photo.startsWith("data:image/png") ? "png" : "jpeg";
       const imageId = wb.addImage({ base64: e.photo, extension });
+      const size = sizes[i] || { w: 1, h: 1 };
+      const scale = Math.min(94 / size.w, 90 / size.h);
+      const w = size.w * scale;
+      const h = size.h * scale;
       ws.addImage(imageId, {
-        tl: { col: 0.08, row: HEADER + i + 0.05 },
-        ext: { width: 90, height: 90 },
+        tl: { col: (103 - w) / 2 / 103, row: HEADER + i + (100 - h) / 2 / 100 },
+        ext: { width: w, height: h },
       });
     }
   });
