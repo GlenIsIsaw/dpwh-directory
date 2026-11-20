@@ -55,7 +55,7 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
               </button>
             ) : (
               <div
-                className="avatar-initials rounded-circle d-flex align-items-center justify-content-center"
+                className="avatar-initials text-uppercase rounded-circle d-flex align-items-center justify-content-center"
                 style={{ width: 110, height: 110, fontSize: "2rem" }}
               >
                 {`${employee.firstName[0] || ""}${employee.lastName[0] || ""}`}
