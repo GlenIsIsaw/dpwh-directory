@@ -146,7 +146,7 @@ onChange={(e) => setSearch(cleanSearch(e.target.value))}
             onClick={() => onView(e)}
             onKeyDown={(ev) => ev.target === ev.currentTarget && ev.key === "Enter" && onView(e)}
           >
-            <td><Avatar employee={e} /></td>
+            <td className="text-uppercase"><Avatar employee={e} /></td>
             <td>{e.idNumber}</td>
                                 <td className="fw-semibold text-uppercase">
                     {fullName(e)}
