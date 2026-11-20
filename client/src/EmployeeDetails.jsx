@@ -119,7 +119,7 @@ export default function EmployeeDetails({ show, employee, onHide, onEdit, onDele
 
     <Modal show={zoom} onHide={() => setZoom(false)} fullscreen className="photo-viewer">
       <Modal.Header closeButton closeVariant="white">
-        <Modal.Title>{employee ? fullName(employee) : ""}</Modal.Title>
+                <Modal.Title className="text-uppercase">{employee ? fullName(employee) : ""}</Modal.Title>
       </Modal.Header>
       <Modal.Body onClick={() => setZoom(false)}>
         {employee?.photo && (
