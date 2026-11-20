@@ -241,9 +241,8 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
                 ))}
               </Form.Select>
             </Col>
-          </Row>
 
-                      <Col md={4}>
+                           <Col md={4}>
               <Form.Label>Gender *</Form.Label>
               <Form.Select name="gender" value={form.gender} onChange={handleChange} required>
                 <option value="">Select</option>
@@ -253,6 +252,8 @@ export default function EmployeeForm({ show, onHide, onSaved, employee }) {
               </Form.Select>
             </Col>
 
+          </Row>
+          
           <Row className="mb-3">
             <Col md={4}>
               <Form.Label>Department</Form.Label>
